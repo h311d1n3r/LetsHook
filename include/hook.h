@@ -1,1 +1,29 @@
 #pragma once
+#include <string>
+#include <windows.h>
+#define DllExport __declspec(dllexport)
+
+using namespace std;
+
+struct Hook {
+	SIZE_T addr;
+	int codeLen;
+	void* hookFunc;
+};
+
+class HookInjector {
+public:
+	static HANDLE process;
+	DllExport HookInjector(SIZE_T addr, int codeLen, void* hookFunc) : hook { addr, codeLen, hookFunc } {};
+	DllExport HookInjector(string, int, void*);
+	DllExport void inject();
+private:
+	Hook hook;
+	SIZE_T injectHookCall();
+	void injectAllocJmp(SIZE_T);
+	DWORD_PTR allocateMemory(SIZE_T);
+	void grantRights(LPVOID, SIZE_T);
+	void injectInstructions(SIZE_T, char*, SIZE_T);
+	MEMORY_BASIC_INFORMATION queryRegionInfo(LPCVOID);
+	void prepareRegion(LPCVOID);
+};
