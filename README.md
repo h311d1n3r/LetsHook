@@ -18,20 +18,13 @@ This code will hook `WSARecv(...)` method from `winsock2.h`.
 #include <string>
 [...]
 
-void hookWSARecv(
- SOCKET s,
- LPWSABUF lpBuffers,
- DWORD dwBufferCount,
- LPDWORD lpNumberOfBytesRecvd,
- LPDWORD lpFlags,
- LPWSAOVERLAPPED lpOverlapped,
- LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
-) {
- std::cout << "Capturing packets !" << std::endl;
+void hookWSARecv(SIZE_T* stack) {
+    SOCKET socket = stack[0];
+    cout << socket << endl;
 }
 
 void initInjector() {
- HookInjector injector("WSARecv", 15, &hookWSARecv);
- injector.inject();
+    HookInjector injector("WS2_32!WSARecv", 15, &hookWSARecv);
+    injector.inject();
 }
 ```
