@@ -7,13 +7,21 @@
 
 HANDLE HookInjector::process;
 
+HookInjector::HookInjector(SIZE_T addr, int codeLen, void* hookFunc) : hook{ addr, codeLen, hookFunc } {
+	this->printHook();
+}
+
 HookInjector::HookInjector(string symbolName, SIZE_T off, int codeLen, void* hookFunc) {
 	SYMBOL_INFO symInfo = { };
 	symInfo.SizeOfStruct = sizeof(symInfo);
 	symInfo.MaxNameLen = MAX_SYM_NAME;
 	if (SymFromName(process, (PCSTR)symbolName.c_str(), &symInfo)) {
 		this->hook = { symInfo.Address+off, codeLen, hookFunc };
-	} else this->hook = { NULL, NULL, NULL };
+	} this->hook = {};
+	this->printHook();
+}
+
+void HookInjector::printHook() {
 	#ifdef DBG
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
