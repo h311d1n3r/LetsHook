@@ -21,6 +21,7 @@ public:
 private:
 	Hook hook;
 	void printHook();
+	bool isInjectable();
 	SIZE_T injectHookCall();
 	void injectAllocJmp(SIZE_T);
 	DWORD_PTR allocateMemory(SIZE_T);

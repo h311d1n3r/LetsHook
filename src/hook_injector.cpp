@@ -30,7 +30,34 @@ void HookInjector::printHook() {
 	#endif
 }
 
+bool HookInjector::isInjectable() {
+	if (this->hook.addr && this->hook.hookFunc) {
+		if (this->hook.codeLen >= 14) {
+			return true;
+		}
+		#ifdef DBG
+		else {
+			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+			SetConsoleTextAttribute(hConsole, 12);
+			cout << "Can't inject hook... Assembly code to replace must have a length >= 14" << endl;
+			SetConsoleTextAttribute(hConsole, 15);
+		}
+		#endif
+	}
+	#ifdef DBG
+	else {
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(hConsole, 12);
+		if(!(this->hook.addr)) cout << "Can't inject hook... Address of assembly code to replace is null" << endl;
+		else cout << "Can't inject hook... Hook function is null" << endl;
+		SetConsoleTextAttribute(hConsole, 15);
+	}
+	#endif
+	return false;
+}
+
 void HookInjector::inject() {
+	if (!this->isInjectable()) return;
 	this->prepareRegion((LPCVOID)this->hook.addr);
 	#ifdef DBG
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
