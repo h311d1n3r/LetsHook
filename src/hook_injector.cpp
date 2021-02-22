@@ -26,7 +26,7 @@ void HookInjector::printHook() {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
 	cout << "Hook : { " << hex << this->hook.addr << ", 0x" << this->hook.codeLen << ", " << (SIZE_T)this->hook.hookFunc << " }" << endl;
-	SetConsoleTextAttribute(hConsole, 15);
+	SetConsoleTextAttribute(hConsole, 8);
 	#endif
 }
 
@@ -40,7 +40,7 @@ bool HookInjector::isInjectable() {
 			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 			SetConsoleTextAttribute(hConsole, 12);
 			cout << "Can't inject hook... Assembly code to replace must have a length >= 14" << endl;
-			SetConsoleTextAttribute(hConsole, 15);
+			SetConsoleTextAttribute(hConsole, 8);
 		}
 		#endif
 	}
@@ -50,7 +50,7 @@ bool HookInjector::isInjectable() {
 		SetConsoleTextAttribute(hConsole, 12);
 		if(!(this->hook.addr)) cout << "Can't inject hook... Address of assembly code to replace is null" << endl;
 		else cout << "Can't inject hook... Hook function is null" << endl;
-		SetConsoleTextAttribute(hConsole, 15);
+		SetConsoleTextAttribute(hConsole, 8);
 	}
 	#endif
 	return false;
@@ -61,23 +61,23 @@ void HookInjector::inject() {
 	this->prepareRegion((LPCVOID)this->hook.addr);
 	#ifdef DBG
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, 10);
+	SetConsoleTextAttribute(hConsole, 13);
 	cout << " Region prepared !" << endl;
-	SetConsoleTextAttribute(hConsole, 15);
+	SetConsoleTextAttribute(hConsole, 8);
 	#endif
 	SIZE_T allocBase = this->injectHookCall();
 	#ifdef DBG
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, 10);
+	SetConsoleTextAttribute(hConsole, 13);
 	cout << " Hook call injected !" << endl;
-	SetConsoleTextAttribute(hConsole, 15);
+	SetConsoleTextAttribute(hConsole, 8);
 	#endif
 	this->injectAllocJmp(allocBase);
 	#ifdef DBG
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, 10);
+	SetConsoleTextAttribute(hConsole, 13);
 	cout << " Alloc jmp injected !" << endl;
-	SetConsoleTextAttribute(hConsole, 15);
+	SetConsoleTextAttribute(hConsole, 8);
 	cout << endl;
 	#endif
 }

@@ -46,7 +46,7 @@ void init() {
     cout << " Version : " << version << endl;
     cout << " Author : " << author << endl;
     cout << "------------------------" << endl;
-    SetConsoleTextAttribute(hConsole, 15);
+    SetConsoleTextAttribute(hConsole, 8);
     cout << endl;
     #endif
     HookInjector::process = GetCurrentProcess();
