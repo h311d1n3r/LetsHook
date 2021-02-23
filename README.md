@@ -3,7 +3,7 @@
 ***LetsHook*** is a **Windows x64** library designed to easily hook functions in external processes after injection.
 ## Requirements
 -Target processes must be **64 bits**.  
--You will need a **DLL injector** to deploy both the library (before any hook) and the hooks you created. You may want to use this one : [DLLInjector](https://github.com/HellDiner/DLLInjector)  
+-You will need a **DLL injector** to deploy both the library (before any hook) and the hooks you created. You may want to use this one : [UM-DLLInjector](https://github.com/HellDiner/UM-DLLInjector)  
 ## Coding
 After compiling the repository code into both a **.DLL** and a **.LIB**, start a new DLL project and include the **.LIB** as well as the **header files**.  
 You will want to include **hook.h** in you source files using `#include "hook.h"` and then instantiate a new `HookInjector` to call the `inject()` method.  
