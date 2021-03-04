@@ -13,7 +13,6 @@ struct Hook {
 
 class HookInjector {
 public:
-	static HANDLE process;
 	DllExport HookInjector(SIZE_T addr, int codeLen, void* hookFunc);
 	DllExport HookInjector(string, SIZE_T, int, void*);
 	DllExport HookInjector(string symbolName, int codeLen, void* hookFunc) : HookInjector(symbolName, 0x0, codeLen, hookFunc) {};

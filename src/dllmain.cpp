@@ -49,8 +49,7 @@ void init() {
     SetConsoleTextAttribute(hConsole, 8);
     cout << endl;
     #endif
-    HookInjector::process = GetCurrentProcess();
-    SymInitialize(HookInjector::process, NULL, TRUE);
+    SymInitialize(GetCurrentProcess(), NULL, TRUE);
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {

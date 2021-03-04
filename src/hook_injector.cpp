@@ -5,8 +5,6 @@
 #include <iostream>
 #endif
 
-HANDLE HookInjector::process;
-
 HookInjector::HookInjector(SIZE_T addr, int codeLen, void* hookFunc) : hook{ addr, codeLen, hookFunc } {
 	this->printHook();
 }
@@ -15,7 +13,7 @@ HookInjector::HookInjector(string symbolName, SIZE_T off, int codeLen, void* hoo
 	SYMBOL_INFO symInfo = { };
 	symInfo.SizeOfStruct = sizeof(symInfo);
 	symInfo.MaxNameLen = MAX_SYM_NAME;
-	if (SymFromName(process, (PCSTR)symbolName.c_str(), &symInfo)) {
+	if (SymFromName(GetCurrentProcess(), (PCSTR)symbolName.c_str(), &symInfo)) {
 		this->hook = { symInfo.Address+off, codeLen, hookFunc };
 	} this->hook = {};
 	this->printHook();
