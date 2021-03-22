@@ -14,7 +14,7 @@ HookInjector::HookInjector(string symbolName, SIZE_T off, int codeLen, void* hoo
 	symInfo.SizeOfStruct = sizeof(symInfo);
 	symInfo.MaxNameLen = MAX_SYM_NAME;
 	if (SymFromName(GetCurrentProcess(), (PCSTR)symbolName.c_str(), &symInfo)) {
-		this->hook = { symInfo.Address+off, codeLen, hookFunc };
+		this->hook = { static_cast<SIZE_T>(symInfo.Address+off), codeLen, hookFunc };
 	} this->hook = {};
 	this->printHook();
 }
@@ -162,7 +162,7 @@ SIZE_T HookInjector::injectHookCall() {
 void HookInjector::injectAllocJmp(SIZE_T allocBase) {
 	char* allocBaseAddr = (char*)&(allocBase);
 	const char jmp[] = {
-		0xff, 0x25, 0x0, 0x0, 0x0, 0x0,
+		static_cast<const char>(0xff), 0x25, 0x0, 0x0, 0x0, 0x0,
 		allocBaseAddr[0],allocBaseAddr[1],allocBaseAddr[2],allocBaseAddr[3],allocBaseAddr[4],allocBaseAddr[5],allocBaseAddr[6],allocBaseAddr[7] //jmp 0xXXXXXXXXXXXXXXXX
 	};
 	int nopLen = this->hook.codeLen - sizeof(jmp);
