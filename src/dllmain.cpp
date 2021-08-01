@@ -1,6 +1,10 @@
 #include <pch.h>
 #include <hook.h>
+#include <breakpoint.h>
 #include <string>
+#include <pipe_client.h>
+//tmp
+#include <ram_assembly_finder.h>
 #ifdef DBG
 #include <stdio.h>
 #include <fcntl.h>
@@ -10,7 +14,9 @@
 #include <algorithm>
 #endif
 
-const string version = "1.0", author = "HellDiner";
+const string version = "1.1", author = "h311d1n3r";
+
+PipeClient* pipe = NULL;
 
 #ifdef DBG
 void RedirectIOToConsole() {
@@ -52,10 +58,50 @@ void init() {
     SymInitialize(GetCurrentProcess(), NULL, TRUE);
 }
 
+bool initPipe() {
+    bool pipeSuccess;
+    pipe = new PipeClient(pipeSuccess);
+    if (pipeSuccess) {
+        char msg[BUFF_LEN];
+        int timeout = 0;
+        while (pipe->readData(msg) <= 0) {
+            Sleep(100);
+            timeout++;
+            if (timeout >= 20) {
+                #ifdef DBG
+                HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+                SetConsoleTextAttribute(hConsole, 12);
+                cout << "Pipe synchronization failed due to timeout..." << endl;
+                SetConsoleTextAttribute(hConsole, 8);
+                #endif
+                return false;
+            }
+        }
+        if (msg) {
+            if (msg[0] == SYNC) {
+                const char sync[] = { SYNC };
+                pipe->sendData((char*)sync, 1);
+                return true;
+            }
+        }
+    }
+    else {
+#ifdef DBG
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(hConsole, 12);
+        cout << "An error occured while enabling the pipe..." << endl;
+        SetConsoleTextAttribute(hConsole, 8);
+#endif
+    }
+    return false;
+}
+
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
     switch (ul_reason_for_call) {
     case DLL_PROCESS_ATTACH:
         init();
+        if (initPipe()) BreakpointInjector::pipe = pipe;
+        break;
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
     case DLL_PROCESS_DETACH:

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "hook.h"
 #include "assembler.h"
+#include "ram_assembly_finder.h"
 #ifdef DBG
 #include <iostream>
 #endif
@@ -10,11 +11,9 @@ HookInjector::HookInjector(SIZE_T addr, int codeLen, void* hookFunc) : hook{ add
 }
 
 HookInjector::HookInjector(string symbolName, SIZE_T off, int codeLen, void* hookFunc) {
-	SYMBOL_INFO symInfo = { };
-	symInfo.SizeOfStruct = sizeof(symInfo);
-	symInfo.MaxNameLen = MAX_SYM_NAME;
-	if (SymFromName(GetCurrentProcess(), (PCSTR)symbolName.c_str(), &symInfo)) {
-		this->hook = { static_cast<SIZE_T>(symInfo.Address+off), codeLen, hookFunc };
+	DWORDLONG addr;
+	if(addr = findSymbolAddressFromName(symbolName)) {
+		this->hook = { static_cast<SIZE_T>(addr+off), codeLen, hookFunc };
 	} this->hook = {};
 	this->printHook();
 }
