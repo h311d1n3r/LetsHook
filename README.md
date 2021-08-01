@@ -13,7 +13,7 @@ The **HookInjector constructors** ask for a `codeLen` parameter. It represents *
 ## Example
 This code will hook `WSARecv(...)` method from `winsock2.h` :
 
-```
+```C++
 #include "hook.h"
 #include <string>
 #include "winsock2.h"
@@ -33,7 +33,7 @@ void initInjector() {
 
 This code will set a breakpoint on `recv(...)` method from `winsock2.h` :
 
-```
+```C++
 #include "breakpoint.h"
 #include "ram_assembly_finder.h"
 #include "winsock2.h"
