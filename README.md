@@ -11,7 +11,7 @@ After your code is ready, **compile your DLL** and **inject it after the library
 ## WARNING
 The **HookInjector constructors** ask for a `codeLen` parameter. It represents **the exact amount of instruction bytes replaced at the start of the hooked method** so that no instruction get cut. **This value is minimum 14 !**
 ## Example
-This code will hook `WSARecv(...)` method from `winsock2.h`.
+This code will hook `WSARecv(...)` method from `winsock2.h` :
 
 ```
 #include "hook.h"
@@ -31,7 +31,7 @@ void initInjector() {
 }
 ```
 
-This code will set a breakpoint on `recv(...)` method from `winsock2.h`.
+This code will set a breakpoint on `recv(...)` method from `winsock2.h` :
 
 ```
 #include "breakpoint.h"
