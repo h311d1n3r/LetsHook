@@ -16,6 +16,8 @@ This code will hook `WSARecv(...)` method from `winsock2.h`.
 ```
 #include "hook.h"
 #include <string>
+#include "winsock2.h"
+#include <iostream>
 [...]
 
 void hookWSARecv(SIZE_T* stack) {
@@ -26,5 +28,27 @@ void hookWSARecv(SIZE_T* stack) {
 void initInjector() {
     HookInjector injector("WS2_32!WSARecv", 15, &hookWSARecv);
     injector.inject();
+}
+```
+
+This code will set a breakpoint on `recv(...)` method from `winsock2.h`.
+
+```
+#include "breakpoint.h"
+#include "ram_assembly_finder.h"
+#include "winsock2.h"
+#include <iostream>
+[...]
+
+void recvBreakpoint() {
+    DWORDLONG recvAddr = findSymbolAddressFromName("WS2_32!recv");
+    if (BreakpointInjector::sendBreakpoint(recvAddr, "recv_breakpoint", 0x48)) {
+        BreakpointInjector::startDebugger();
+        BREAKPOINT_RESULT result = BreakpointInjector::readBreakpointResult();
+        if(!result.name.compare("recv_breakpoint")) {
+            SOCKET socket = result.regs.RCX;
+            cout << hex << socket << endl;
+        }
+    }
 }
 ```
