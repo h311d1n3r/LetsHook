@@ -26,8 +26,8 @@ BREAKPOINT_RESULT BreakpointInjector::readBreakpointResult() {
 	while (pipe->readData(msg) <= 0) Sleep(100);
 	if (msg) {
 		if (msg[0] == BREAKPOINT) {
-			pipe->readData(msg);
-			name = msg;
+			int nameLen = pipe->readData(msg);
+			name = string((const char*) msg, nameLen);
 			for (int i = 0; i < sizeof(REGISTERS) / sizeof(DWORD64); i++) {
 				if (pipe->readData(msg) == sizeof(DWORD64)) {
 					switch (i) {
