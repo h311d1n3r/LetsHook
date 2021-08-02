@@ -11,7 +11,7 @@ struct BREAKPOINT_RESULT {
 class BreakpointInjector {
 public:
 	inline static PipeClient* pipe = NULL;
-	static DllExport bool sendBreakpoint(DWORDLONG addr, std::string name, const char replacedChar);
+	static DllExport bool sendBreakpoint(DWORDLONG addr, std::string name);
 	static DllExport BREAKPOINT_RESULT readBreakpointResult();
 	static DllExport void startDebugger();
 };

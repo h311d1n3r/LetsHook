@@ -42,7 +42,7 @@ This code will set a breakpoint on `recv(...)` method from `winsock2.h` :
 
 void recvBreakpoint() {
     DWORDLONG recvAddr = findSymbolAddressFromName("WS2_32!recv");
-    if (BreakpointInjector::sendBreakpoint(recvAddr, "recv_breakpoint", 0x48)) {
+    if (BreakpointInjector::sendBreakpoint(recvAddr, "recv_breakpoint")) {
         BreakpointInjector::startDebugger();
         BREAKPOINT_RESULT result = BreakpointInjector::readBreakpointResult();
         if(!result.name.compare("recv_breakpoint")) {
