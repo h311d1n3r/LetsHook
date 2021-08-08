@@ -55,14 +55,6 @@ DWORDLONG findAssemblyInRegion(ASSEMBLY_SEARCH_DATA data) {
 	return NULL;
 }
 
-DWORDLONG findSymbolAddressFromName(string symbolName) {
-	SYMBOL_INFO symInfo = { };
-	symInfo.SizeOfStruct = sizeof(symInfo);
-	symInfo.MaxNameLen = MAX_SYM_NAME;
-	if (SymFromName(GetCurrentProcess(), (PCSTR)symbolName.c_str(), &symInfo)) return symInfo.Address;
-	return NULL;
-}
-
 DWORDLONG findAddress(REGION_SEARCH_DATA region_data, const char assembly[]) {
 	vector<MEMORY_BASIC_INFORMATION> regions = findRegions(region_data);
 	DWORDLONG addr = NULL;

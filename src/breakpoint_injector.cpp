@@ -2,13 +2,15 @@
 
 using namespace std;
 
-bool BreakpointInjector::sendBreakpoint(DWORDLONG addr, string name) {
+bool BreakpointInjector::sendBreakpoint(DWORDLONG addr, string name, bool keepBp) {
 	REGISTERS registers = {};
 	const char breakPointArr[] = { BREAKPOINT };
 	char* addrArr = (char*)&addr;
 	pipe->sendData((char*)breakPointArr, sizeof(breakPointArr));
 	pipe->sendData(addrArr, sizeof(DWORDLONG));
 	pipe->sendData((char*)name.c_str(), name.length());
+	const char keepBpArr[] = { keepBp };
+	pipe->sendData((char*)keepBpArr, sizeof(keepBpArr));
 	char msg[BUFF_LEN];
 	while (pipe->readData(msg) <= 0) Sleep(100);
 	if (msg) {

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "hook.h"
 #include "assembler.h"
-#include "ram_assembly_finder.h"
+#include "symbols.h"
 #ifdef DBG
 #include <iostream>
 #endif
