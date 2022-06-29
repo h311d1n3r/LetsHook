@@ -30,25 +30,3 @@ void initInjector() {
     injector.inject();
 }
 ```
-
-This code will set a breakpoint on `recv(...)` method from `winsock2.h` :
-
-```C++
-#include "breakpoint.h"
-#include "ram_assembly_finder.h"
-#include "winsock2.h"
-#include <iostream>
-[...]
-
-void recvBreakpoint() {
-    DWORDLONG recvAddr = findSymbolAddressFromName("WS2_32!recv");
-    if (BreakpointInjector::sendBreakpoint(recvAddr, "recv_breakpoint")) {
-        BreakpointInjector::startDebugger();
-        BREAKPOINT_RESULT result = BreakpointInjector::readBreakpointResult();
-        if(!result.name.compare("recv_breakpoint")) {
-            SOCKET socket = result.regs.RCX;
-            cout << hex << socket << endl;
-        }
-    }
-}
-```
