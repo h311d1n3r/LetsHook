@@ -95,7 +95,7 @@ void HookInjector::inject() {
 }
 
 ADDR HookInjector::injectHookCall() {
-	ADDR hookFuncAddr = (ADDR)&(this->hook.hookFunc);
+	ADDR hookFuncAddr = (ADDR)(this->hook.hookFunc);
 	int codeLen = this->hook.codeLen;
 
 	asmjit::JitRuntime rt;
@@ -105,11 +105,9 @@ ADDR HookInjector::injectHookCall() {
 
 	a.pop(rax);
 	a.push(rax);
-	asmjit::Label movRipLabel;
-	a.call(movRipLabel);
-	a.bind(movRipLabel);
+	a.call(5);
 	a.pop(rax);
-	a.add(rax, 19);
+	a.add(rax, 27);
 	a.push(rax);
 	a.movabs(rax, hookFuncAddr);
 	a.push(rax);
@@ -117,15 +115,17 @@ ADDR HookInjector::injectHookCall() {
 	a.pop(rax);
 	a.sub(rsp, 0x18);
 	a.ret(); //calls hook
+	a.add(rsp, 0x8);
 	for (int i = 0; i < codeLen; i++) {
 		a.db(*reinterpret_cast<char*>(this->hook.addr + i));
 	}
 	a.push(rax);
-	a.mov(rax, this->hook.addr + codeLen);
 	a.push(rax);
-	a.add(rsp, 0x8);
+	a.mov(rax, this->hook.addr + codeLen);
+	a.add(rsp, 0x10);
+	a.push(rax);
+	a.sub(rsp, 0x8);
 	a.pop(rax);
-	a.sub(rsp, 0x10);
 	a.ret();
 
 	vector<unsigned char> codeVec(a.bufferData(), a.bufferPtr());
