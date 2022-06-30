@@ -1,7 +1,7 @@
 #pragma once
 #include <pch.h>
 #include <hook.h>
-#ifdef DBG
+#if DEBUG
 #include <stdio.h>
 #include <fcntl.h>
 #include <io.h>
@@ -12,7 +12,7 @@
 
 const string version = "1.2", author = "h311d1n3r";
 
-#ifdef DBG
+#if DEBUG
 void RedirectIOToConsole() {
     AllocConsole();
     HANDLE ConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -38,7 +38,7 @@ void RedirectIOToConsole() {
 #endif
 
 void init() {
-    #ifdef DBG
+    #if DEBUG
     RedirectIOToConsole();
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, 11);

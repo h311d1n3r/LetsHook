@@ -1,29 +1,39 @@
 #include <pch.h>
 #include <hook.h>
-#ifdef DBG
+#include <TCHAR.h>
+#if DEBUG
 #include <iostream>
 #endif
 
 HookInjector::HookInjector(ADDR addr, int codeLen, void* hookFunc) : hook{ addr, codeLen, hookFunc } {
-#ifdef DBG
+#if DEBUG
 	this->printHook();
 #endif
 }
 
 HookInjector::HookInjector(string symbolName, int codeLen, void* hookFunc) {
-	ADDR symbolAddr = this->findSymbolADDRFromName(symbolName);
-	HookInjector(symbolAddr, codeLen, hookFunc);
+	ADDR symbolAddr = this->findSymbolAddressFromName(symbolName);
+	this->hook = { symbolAddr, codeLen, hookFunc };
+#if DEBUG
+	this->printHook();
+#endif
 }
 
-ADDR HookInjector::findSymbolADDRFromName(string symbolName) {
-	SYMBOL_INFO symInfo = { };
-	symInfo.SizeOfStruct = sizeof(symInfo);
-	symInfo.MaxNameLen = MAX_SYM_NAME;
-	if (SymFromName(GetCurrentProcess(), (PCSTR)symbolName.c_str(), &symInfo)) return symInfo.Address;
+ADDR HookInjector::findSymbolAddressFromName(string symbolName) {
+	TCHAR szSymbolName[MAX_SYM_NAME];
+	ULONG64 buffer[(sizeof(SYMBOL_INFO) +
+		MAX_SYM_NAME * sizeof(TCHAR) +
+		sizeof(ULONG64) - 1) /
+		sizeof(ULONG64)];
+	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+	_tcscpy_s(szSymbolName, MAX_SYM_NAME, (PCSTR)symbolName.c_str());
+	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSymbol->MaxNameLen = MAX_SYM_NAME;
+	if (SymFromName(GetCurrentProcess(), szSymbolName, pSymbol)) return pSymbol->Address;
 	return NULL;
 }
 
-#ifdef DBG
+#if DEBUG
 void HookInjector::printHook() {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
@@ -37,20 +47,20 @@ bool HookInjector::isInjectable() {
 		if (this->hook.codeLen >= 13) {
 			return true;
 		}
-		#ifdef DBG
+		#if DEBUG
 		else {
 			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 			SetConsoleTextAttribute(hConsole, 12);
-			cout << "Can't inject hook... Assembly code to replace must have a length >= 14" << endl;
+			cout << "Can't inject hook... Assembly code to replace must have a length >= 13" << endl;
 			SetConsoleTextAttribute(hConsole, 8);
 		}
 		#endif
 	}
-	#ifdef DBG
+	#if DEBUG
 	else {
 		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		SetConsoleTextAttribute(hConsole, 12);
-		if(!(this->hook.addr)) cout << "Can't inject hook... ADDR of assembly code to replace is null" << endl;
+		if(!(this->hook.addr)) cout << "Can't inject hook... Address of assembly code to replace is null" << endl;
 		else cout << "Can't inject hook... Hook function is null" << endl;
 		SetConsoleTextAttribute(hConsole, 8);
 	}
@@ -61,21 +71,21 @@ bool HookInjector::isInjectable() {
 void HookInjector::inject() {
 	if (!this->isInjectable()) return;
 	this->prepareRegion((LPCVOID)this->hook.addr);
-	#ifdef DBG
+	#if DEBUG
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
 	cout << " Region prepared !" << endl;
 	SetConsoleTextAttribute(hConsole, 8);
 	#endif
 	SIZE_T allocBase = this->injectHookCall();
-	#ifdef DBG
+	#if DEBUG
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
 	cout << " Hook call injected !" << endl;
 	SetConsoleTextAttribute(hConsole, 8);
 	#endif
 	this->injectAllocJmp(allocBase);
-	#ifdef DBG
+	#if DEBUG
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
 	cout << " Alloc jmp injected !" << endl;

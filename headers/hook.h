@@ -17,11 +17,11 @@ public:
 	DllExport void inject();
 private:
 	Hook hook;
-#ifdef DBG
+#if DEBUG
 	void printHook();
 #endif
 	bool isInjectable();
-	ADDR findSymbolADDRFromName(string symbolName);
+	ADDR findSymbolAddressFromName(string symbolName);
 	ADDR injectHookCall();
 	void injectAllocJmp(ADDR);
 	ADDR allocateMemory(SIZE_T);
