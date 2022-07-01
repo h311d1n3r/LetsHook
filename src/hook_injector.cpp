@@ -5,15 +5,15 @@
 #include <iostream>
 #endif
 
-HookInjector::HookInjector(ADDR addr, int codeLen, void* hookFunc) : hook{ addr, codeLen, hookFunc } {
+HookInjector::HookInjector(ADDR hookedAddr, ADDR hookAddr) : hook{ hookedAddr, hookAddr } {
 #if DEBUG
 	this->printHook();
 #endif
 }
 
-HookInjector::HookInjector(string symbolName, int codeLen, void* hookFunc) {
-	ADDR symbolAddr = this->findSymbolAddressFromName(symbolName);
-	this->hook = { symbolAddr, codeLen, hookFunc };
+HookInjector::HookInjector(string hookedName, ADDR hookAddr) {
+	ADDR hookedAddr = this->findSymbolAddressFromName(hookedName);
+	this->hook = { hookedAddr, hookAddr };
 #if DEBUG
 	this->printHook();
 #endif
@@ -37,31 +37,21 @@ ADDR HookInjector::findSymbolAddressFromName(string symbolName) {
 void HookInjector::printHook() {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
-	cout << "Hook : { " << hex << this->hook.addr << ", 0x" << this->hook.codeLen << ", " << (SIZE_T)this->hook.hookFunc << " }" << endl;
+	cout << "Hook : { " << hex << this->hook.hookedAddr << ", " << (SIZE_T)this->hook.hookAddr << " }" << endl;
 	SetConsoleTextAttribute(hConsole, 8);
 }
 #endif
 
 bool HookInjector::isInjectable() {
-	if (this->hook.addr && this->hook.hookFunc) {
-		if (this->hook.codeLen >= 13) {
-			return true;
-		}
-		#if DEBUG
-		else {
-			HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-			SetConsoleTextAttribute(hConsole, 12);
-			cout << "Can't inject hook... Assembly code to replace must have a length >= 13" << endl;
-			SetConsoleTextAttribute(hConsole, 8);
-		}
-		#endif
+	if (this->hook.hookedAddr && this->hook.hookAddr) {
+		return true;
 	}
 	#if DEBUG
 	else {
 		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		SetConsoleTextAttribute(hConsole, 12);
-		if(!(this->hook.addr)) cout << "Can't inject hook... Address of assembly code to replace is null" << endl;
-		else cout << "Can't inject hook... Hook function is null" << endl;
+		if(!(this->hook.hookedAddr)) cout << "Can't inject hook... Address of hooked function is null" << endl;
+		else cout << "Can't inject hook... Address of hook function is null" << endl;
 		SetConsoleTextAttribute(hConsole, 8);
 	}
 	#endif
@@ -70,90 +60,32 @@ bool HookInjector::isInjectable() {
 
 void HookInjector::inject() {
 	if (!this->isInjectable()) return;
-	this->prepareRegion((LPCVOID)this->hook.addr);
-	#if DEBUG
+
+	this->prepareRegion((LPCVOID)this->hook.hookedAddr);
+#if DEBUG
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
 	cout << " Region prepared !" << endl;
 	SetConsoleTextAttribute(hConsole, 8);
-	#endif
-	SIZE_T allocBase = this->injectHookCall();
-	#if DEBUG
+#endif
+
+	asmjit::JitRuntime rt;
+	asmjit::CodeHolder code;
+	code.init(rt.environment());
+	Assembler a(&code);
+
+	a.mov(rax, this->hook.hookAddr);
+	a.jmp(rax);
+
+	vector<unsigned char> codeVec(a.bufferData(), a.bufferPtr());
+	this->injectInstructions(this->hook.hookedAddr, codeVec);
+
+#if DEBUG
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
 	cout << " Hook call injected !" << endl;
 	SetConsoleTextAttribute(hConsole, 8);
-	#endif
-	this->injectAllocJmp(allocBase);
-	#if DEBUG
-	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, 13);
-	cout << " Alloc jmp injected !" << endl;
-	SetConsoleTextAttribute(hConsole, 8);
-	cout << endl;
-	#endif
-}
-
-ADDR HookInjector::injectHookCall() {
-	ADDR hookFuncAddr = (ADDR)(this->hook.hookFunc);
-	int codeLen = this->hook.codeLen;
-
-	asmjit::JitRuntime rt;
-	asmjit::CodeHolder code;
-	code.init(rt.environment());
-	Assembler a(&code);
-
-	a.pop(rax);
-	a.push(rax);
-	a.call(5);
-	a.pop(rax);
-	a.add(rax, 27);
-	a.push(rax);
-	a.movabs(rax, hookFuncAddr);
-	a.push(rax);
-	a.add(rsp, 0x10);
-	a.pop(rax);
-	a.sub(rsp, 0x18);
-	a.ret(); //calls hook
-	a.add(rsp, 0x8);
-	for (int i = 0; i < codeLen; i++) {
-		a.db(*reinterpret_cast<char*>(this->hook.addr + i));
-	}
-	a.push(rax);
-	a.push(rax);
-	a.mov(rax, this->hook.addr + codeLen);
-	a.add(rsp, 0x10);
-	a.push(rax);
-	a.sub(rsp, 0x8);
-	a.pop(rax);
-	a.ret();
-
-	vector<unsigned char> codeVec(a.bufferData(), a.bufferPtr());
-	ADDR allocBase = this->allocateMemory(codeVec.size());
-	this->prepareRegion((LPCVOID)allocBase);
-	this->injectInstructions(allocBase, codeVec);
-	return allocBase;
-}
-
-void HookInjector::injectAllocJmp(ADDR allocBase) {
-	ADDR allocBaseAddr = (ADDR)&(allocBase);
-	asmjit::JitRuntime rt;
-	asmjit::CodeHolder code;
-	code.init(rt.environment());
-	Assembler a(&code);
-	a.push(rax);
-	a.mov(rax, allocBase);
-	a.jmp(rax);
-	int nopLen = this->hook.codeLen - 13;
-	for (int i(0); i < nopLen; i++) {
-		a.nop();
-	}
-	vector<unsigned char> codeVec(a.bufferData(), a.bufferPtr());
-	this->injectInstructions(this->hook.addr, codeVec);
-}
-
-ADDR HookInjector::allocateMemory(SIZE_T size) {
-	return reinterpret_cast<ADDR>(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size));
+#endif
 }
 
 void HookInjector::grantRights(LPVOID regionBase, SIZE_T regionSize) {

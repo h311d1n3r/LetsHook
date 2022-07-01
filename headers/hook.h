@@ -5,15 +5,14 @@ using namespace std;
 using namespace asmjit::x86;
 
 struct Hook {
-	ADDR addr;
-	int codeLen;
-	void* hookFunc;
+	ADDR hookedAddr;
+	ADDR hookAddr;
 };
 
 class HookInjector {
 public:
-	DllExport HookInjector(ADDR addr, int codeLen, void* hookFunc);
-	DllExport HookInjector(string symbolName, int codeLen, void* hookFunc);
+	DllExport HookInjector(ADDR hookedAddr, ADDR hookAddr);
+	DllExport HookInjector(string hookedName, ADDR hookAddr);
 	DllExport void inject();
 private:
 	Hook hook;
@@ -22,9 +21,6 @@ private:
 #endif
 	bool isInjectable();
 	ADDR findSymbolAddressFromName(string symbolName);
-	ADDR injectHookCall();
-	void injectAllocJmp(ADDR);
-	ADDR allocateMemory(SIZE_T);
 	void grantRights(LPVOID, SIZE_T);
 	void injectInstructions(ADDR, vector<unsigned char>);
 	MEMORY_BASIC_INFORMATION queryRegionInfo(LPCVOID);
