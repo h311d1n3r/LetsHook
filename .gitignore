@@ -1,6 +1,8 @@
 x64/
 x86/
 .vs/
+bin/
+obj/
 *.sln
 *.vcxproj
 *.filters
