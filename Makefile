@@ -31,8 +31,8 @@ bin/lib/asmjit.dll: prepare_env
 .PHONY: clean	
 clean:
 	@echo "Cleaning repository..."
-	rm -rf bin;
-	rm -rf obj
+	@rm -rf bin;
+	@rm -rf obj
 
 .PHONY: prepare_env
 prepare_env:
