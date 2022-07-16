@@ -1,6 +1,7 @@
 #include <pch.h>
 #include <hook.h>
 #include <TCHAR.h>
+#include <algorithm>
 #if DEBUG
 #include <iostream>
 #endif
@@ -38,7 +39,7 @@ void HookInjector::printHook() {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
 	cout << "Hook : { " << hex << this->hook.hookedAddr << ", " << (SIZE_T)this->hook.hookAddr << " }" << endl;
-	SetConsoleTextAttribute(hConsole, 8);
+	SetConsoleTextAttribute(hConsole, 15);
 }
 #endif
 
@@ -52,10 +53,47 @@ bool HookInjector::isInjectable() {
 		SetConsoleTextAttribute(hConsole, 12);
 		if(!(this->hook.hookedAddr)) cout << "Can't inject hook... Address of hooked function is null" << endl;
 		else cout << "Can't inject hook... Address of hook function is null" << endl;
-		SetConsoleTextAttribute(hConsole, 8);
+		SetConsoleTextAttribute(hConsole, 15);
 	}
 	#endif
 	return false;
+}
+
+bool compareOffsets(HookPatch p1, HookPatch p2) {
+	return p1.funcOff < p2.funcOff;
+}
+
+Func HookInjector::makeFunc(SIZE_T symLen, vector<HookPatch> patches) {
+	SIZE_T effectiveLen = symLen;
+	sort(patches.begin(), patches.end(), compareOffsets);
+	for (HookPatch patch : patches) {
+		SIZE_T instrLen = patch.instructions.size();
+		effectiveLen += instrLen - patch.replacedLen;
+	}
+	ADDR allocAddr = (ADDR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, effectiveLen);
+	if (allocAddr) {
+		this->prepareRegion((LPCVOID)allocAddr);
+		SIZE_T srcOff = 0;
+		SIZE_T destOff = 0;
+		for (HookPatch patch : patches) {
+			memcpy((char*)allocAddr + destOff, (char*)this->hook.hookedAddr + srcOff, patch.funcOff - srcOff);
+			destOff += patch.funcOff - destOff;
+			srcOff += patch.funcOff - srcOff;
+			memcpy((char*)allocAddr + destOff, patch.instructions.data(), patch.instructions.size());
+			srcOff += patch.replacedLen;
+			destOff += patch.instructions.size();
+		}
+		if(symLen > srcOff) memcpy((char*)allocAddr + destOff, (char*)this->hook.hookedAddr + srcOff, symLen - srcOff + 1);
+		Func fn = (Func)allocAddr;
+#if DEBUG
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(hConsole, 13);
+		cout << " Copy allocated at address : " << hex << +allocAddr << endl;
+		SetConsoleTextAttribute(hConsole, 15);
+#endif
+		return fn;
+	}
+	return NULL;
 }
 
 void HookInjector::inject() {
@@ -66,7 +104,7 @@ void HookInjector::inject() {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
 	cout << " Region prepared !" << endl;
-	SetConsoleTextAttribute(hConsole, 8);
+	SetConsoleTextAttribute(hConsole, 15);
 #endif
 
 	asmjit::JitRuntime rt;
@@ -84,7 +122,7 @@ void HookInjector::inject() {
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 13);
 	cout << " Hook call injected !" << endl;
-	SetConsoleTextAttribute(hConsole, 8);
+	SetConsoleTextAttribute(hConsole, 15);
 #endif
 }
 

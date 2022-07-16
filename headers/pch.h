@@ -8,3 +8,4 @@
 
 #define DllExport __declspec(dllexport)
 #define ADDR DWORDLONG
+typedef int (*Func)(...);

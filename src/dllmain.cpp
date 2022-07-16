@@ -46,7 +46,7 @@ void init() {
     cout << " Version : " << version << endl;
     cout << " Author : " << author << endl;
     cout << "------------------------" << endl;
-    SetConsoleTextAttribute(hConsole, 8);
+    SetConsoleTextAttribute(hConsole, 15);
     cout << endl;
     #endif
     SymInitialize(GetCurrentProcess(), NULL, TRUE);
