@@ -63,7 +63,7 @@ bool compareOffsets(HookPatch p1, HookPatch p2) {
 	return p1.funcOff < p2.funcOff;
 }
 
-Func HookInjector::makeFunc(SIZE_T symLen, vector<HookPatch> patches) {
+ADDR HookInjector::makeFunc(SIZE_T symLen, vector<HookPatch> patches) {
 	SIZE_T effectiveLen = symLen;
 	sort(patches.begin(), patches.end(), compareOffsets);
 	for (HookPatch patch : patches) {
@@ -84,14 +84,13 @@ Func HookInjector::makeFunc(SIZE_T symLen, vector<HookPatch> patches) {
 			destOff += patch.instructions.size();
 		}
 		if(symLen > srcOff) memcpy((char*)allocAddr + destOff, (char*)this->hook.hookedAddr + srcOff, symLen - srcOff + 1);
-		Func fn = (Func)allocAddr;
 #if DEBUG
 		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		SetConsoleTextAttribute(hConsole, 13);
 		cout << " Copy allocated at address : " << hex << +allocAddr << endl;
 		SetConsoleTextAttribute(hConsole, 15);
 #endif
-		return fn;
+		return allocAddr;
 	}
 	return NULL;
 }

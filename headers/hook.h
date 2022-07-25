@@ -20,8 +20,8 @@ public:
 	Hook hook;
 	DllExport HookInjector(ADDR hookedAddr, ADDR hookAddr);
 	DllExport HookInjector(string hookedName, ADDR hookAddr);
-	DllExport Func makeFunc(SIZE_T symLen, vector<HookPatch> patches);
-	DllExport Func makeFunc(SIZE_T symLen) { return this->makeFunc(symLen, vector<HookPatch>()); };
+	DllExport ADDR makeFunc(SIZE_T symLen, vector<HookPatch> patches);
+	DllExport ADDR makeFunc(SIZE_T symLen) { return this->makeFunc(symLen, vector<HookPatch>()); };
 	DllExport void inject();
 private:
 #if DEBUG
