@@ -26,11 +26,11 @@ struct SearchArea {
 
 class PatternMatcher {
 public:
-	PatternMatcher(SearchArea area) : area(area) {};
-	PatternMatcher();
-	PatternMatcher(HMODULE mod);
-	vector<ADDR> findMatches(PatternFilter filter);
-	SearchArea getSearchArea();
+	DllExport PatternMatcher(SearchArea area) : area(area) {};
+	DllExport PatternMatcher();
+	DllExport PatternMatcher(HMODULE mod);
+	DllExport vector<ADDR> findMatches(PatternFilter filter);
+	DllExport SearchArea getSearchArea();
 private:
 	SearchArea area;
 	vector<Region> findCandidateRegions(PatternFilter filter);
