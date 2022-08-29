@@ -27,10 +27,8 @@ private:
 #if DEBUG
 	void printHook();
 #endif
-	bool isInjectable();
+	BOOL isInjectable();
 	ADDR findSymbolAddressFromName(string symbolName);
-	void grantRights(LPVOID, SIZE_T);
 	void injectInstructions(ADDR, vector<unsigned char>);
-	MEMORY_BASIC_INFORMATION queryRegionInfo(LPCVOID);
 	void prepareRegion(LPCVOID);
 };

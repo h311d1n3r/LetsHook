@@ -43,9 +43,9 @@ void HookInjector::printHook() {
 }
 #endif
 
-bool HookInjector::isInjectable() {
+BOOL HookInjector::isInjectable() {
 	if (this->hook.hookedAddr && this->hook.hookAddr) {
-		return true;
+		return TRUE;
 	}
 	#if DEBUG
 	else {
@@ -56,10 +56,10 @@ bool HookInjector::isInjectable() {
 		SetConsoleTextAttribute(hConsole, 15);
 	}
 	#endif
-	return false;
+	return FALSE;
 }
 
-bool compareOffsets(HookPatch p1, HookPatch p2) {
+BOOL compareOffsets(HookPatch p1, HookPatch p2) {
 	return p1.funcOff < p2.funcOff;
 }
 
@@ -125,11 +125,6 @@ void HookInjector::inject() {
 #endif
 }
 
-void HookInjector::grantRights(LPVOID regionBase, SIZE_T regionSize) {
-	DWORD oldProtect;
-	VirtualProtect(regionBase, regionSize, PAGE_EXECUTE_READWRITE, &oldProtect);
-}
-
 void HookInjector::injectInstructions(ADDR startAddr, vector<unsigned char> instructions) {
 	char* target_ptr;
 	for (int i(0); i < instructions.size(); i++) {
@@ -138,13 +133,9 @@ void HookInjector::injectInstructions(ADDR startAddr, vector<unsigned char> inst
 	}
 }
 
-MEMORY_BASIC_INFORMATION HookInjector::queryRegionInfo(LPCVOID addr) {
+void HookInjector::prepareRegion(LPCVOID addr) {
 	MEMORY_BASIC_INFORMATION regionInfo;
 	VirtualQuery(addr, &regionInfo, sizeof(regionInfo));
-	return regionInfo;
-}
-
-void HookInjector::prepareRegion(LPCVOID addr) {
-	MEMORY_BASIC_INFORMATION regionInfo = this->queryRegionInfo(addr);
-	this->grantRights(regionInfo.BaseAddress, regionInfo.RegionSize);
+	DWORD oldProtect;
+	VirtualProtect(regionInfo.BaseAddress, regionInfo.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtect);
 }
